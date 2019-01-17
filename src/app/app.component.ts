@@ -9,13 +9,13 @@ import { User } from './_models';
     templateUrl: 'app.component.html' 
 })
 export class AppComponent {
-    currentUser: User;
+    currentUser: any;
 
     constructor(
         private router: Router,
         private authService: AuthService
     ) {
-        this.authService.currentUser.subscribe(x => this.currentUser = x);
+        this.currentUser = this.authService.getCurrentUser();
     }
 
     logout() {

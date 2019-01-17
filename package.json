@@ -6,20 +6,21 @@
         "start": "webpack-dev-server --mode development --open"
     },
     "dependencies": {
+        "@angular/animations": "^4.0.2",
         "@angular/common": "^7.0.1",
         "@angular/compiler": "^7.0.1",
         "@angular/core": "^7.0.1",
         "@angular/forms": "^7.0.1",
+        "@angular/material": "2.0.0-beta.3",
         "@angular/platform-browser": "^7.0.1",
         "@angular/platform-browser-dynamic": "^7.0.1",
         "@angular/router": "^7.0.1",
-        "@angular/material": "2.0.0-beta.3",
-        "@angular/animations": "^4.0.2",
+        "amazon-cognito-identity-js": "^1.16.0",
+        "angular2-jwt": "^0.2.3",
+        "aws-sdk": "^2.49.0",
         "core-js": "^2.5.7",
         "rxjs": "^6.3.3",
-        "zone.js": "^0.8.26",
-        "amazon-cognito-identity-js": "1.29.0",
-        "aws-sdk": "2.67.0"
+        "zone.js": "^0.8.26"
     },
     "devDependencies": {
         "@types/node": "^10.12.2",

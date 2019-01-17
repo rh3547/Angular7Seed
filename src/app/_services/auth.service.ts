@@ -1,7 +1,8 @@
 ﻿import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { CognitoService, CognitoCallback } from './cognito.service';
 import { map } from 'rxjs/operators';
+// import { JwtHelper } from 'angular2-jwt';
 
 import { User } from '@/_models';
 
@@ -9,38 +10,63 @@ import { User } from '@/_models';
     providedIn: 'root'
 })
 export class AuthService {
-    private currentUserSubject: BehaviorSubject<User>;
-    public currentUser: Observable<User>;
+    private authenticated: boolean = false;
 
     constructor(
-        private http: HttpClient
-    ) {
-        this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(localStorage.getItem('currentUser')));
-        this.currentUser = this.currentUserSubject.asObservable();
+        private http: HttpClient,
+        private cognitoService: CognitoService
+    ) { }
+
+    /*
+    ========================================================================================
+        Login Functions
+    ========================================================================================
+    */
+    public login(username: string, password: string, callback: CognitoCallback) {
+        this.cognitoService.authenticate(username, password, callback);
     }
 
-    public get currentUserValue(): User {
-        return this.currentUserSubject.value;
+    public logout() {
+        this.cognitoService.getCurrentUser().signOut();
     }
 
-    login(username: string, password: string): Observable<any> {
-        return this.http.post<User>(`${config.apiUrl}/users/authenticate`, { username, password })
-            .pipe(map(
-                (user) => {
-                    // Login successful if there's a JWT token in the response
-                    if (user && user.token) {
-                        // Store user details and JWT token in local storage to keep user logged in between page refreshes
-                        localStorage.setItem('currentUser', JSON.stringify(user));
-                        this.currentUserSubject.next(user);
-                    }
-
-                    return user;
-                }
-            ));
+    /*
+    ========================================================================================
+        Registration Functions
+    ========================================================================================
+    */
+    public register(name: string, username: string, password: string, callback: CognitoCallback) {
+        this.cognitoService.register(name, username, password, callback);
     }
 
-    logout() {
-        localStorage.removeItem('currentUser');
-        this.currentUserSubject.next(null);
+    /*
+    ========================================================================================
+        User/Auth Functions
+    ========================================================================================
+    */
+    public getCurrentUser() {
+        return this.cognitoService.getCurrentUser();
+    }
+
+    public isAuthenticated(): Promise<boolean> {
+        // Check whether the current time is past the access token's expiry time
+        return this.retrieveIdToken()
+            .then(token => {
+                // const jwtHelper = new JwtHelper();
+                // this.authenticated = token !== null && !jwtHelper.isTokenExpired(token);
+                return this.authenticated;
+            })
+            .catch(() => {
+                this.authenticated = false;
+                return this.authenticated;
+            });
+    }
+
+    public retrieveIdToken() {
+        return this.cognitoService.getIdToken();
+    }
+
+    public retrieveAccessToken() {
+        return this.cognitoService.getAccessToken();
     }
 }

@@ -2,18 +2,18 @@
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
-import { AuthService } from '@/_services';
+import { AuthService, CognitoCallback } from '@/_services';
 
 @Component({
     selector: 'page-login',
     templateUrl: 'login.html'
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements CognitoCallback, OnInit {
     loginForm: FormGroup;
     loading = false;
     submitted = false;
     returnUrl: string;
-    error = '';
+	errorMessage: string;
 
     constructor(
         private formBuilder: FormBuilder,
@@ -24,34 +24,36 @@ export class LoginComponent implements OnInit {
 
     ngOnInit() {
         this.loginForm = this.formBuilder.group({
-            username: ['', Validators.required],
+            email: ['', Validators.required],
             password: ['', Validators.required]
         });
-
-        // Reset auth status
-        //this.authService.logout();
 
         // Get the return url from route parameters or default to '/'
         this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     }
 
-    // Returns the fileds for the login form
-    get loginFields() { return this.loginForm.controls; }
+    // Returns the fields for the login form
+    get fields() { return this.loginForm.controls; }
 
-    onSubmit() {
+    login() {
+        this.errorMessage = "";
         this.submitted = true;
 
         if (this.loginForm.invalid) return;
 
         this.loading = true;
-        this.authService.login(this.loginFields.username.value, this.loginFields.password.value).subscribe(
-			data => {
-				this.router.navigate([this.returnUrl]);
-			},
-			error => {
-				this.error = error;
-				this.loading = false;
-			}
-		);
+        this.authService.login(this.fields.email.value, this.fields.password.value, this);
     }
+	
+	cognitoCallback(message: string, result: any) {
+		if (message != null) {
+			this.errorMessage = message;
+			this.loading = false;
+			if (this.errorMessage === 'User is not confirmed.') {
+				this.router.navigate(['/confirm', this.fields.email.value]);
+			}
+		} else {
+			this.router.navigate([this.returnUrl]);
+		}
+	}
 }
