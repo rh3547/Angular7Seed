@@ -2,18 +2,18 @@
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
-import { AuthService, CognitoCallback } from '@/_services';
+import { AuthService, CognitoService, CognitoCallback } from '@/_services';
 
 @Component({
     selector: 'page-login',
-    templateUrl: 'login.html'
+    templateUrl: 'login.html',
+    styleUrls: ['./login.scss']
 })
 export class LoginComponent implements CognitoCallback, OnInit {
     loginForm: FormGroup;
     loading = false;
-    submitted = false;
     returnUrl: string;
-	errorMessage: string;
+    errorMessage: string;
 
     constructor(
         private formBuilder: FormBuilder,
@@ -31,6 +31,7 @@ export class LoginComponent implements CognitoCallback, OnInit {
 
         // Get the return url from route parameters or default to '/'
         this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+        this.errorMessage = this.route.snapshot.queryParams['errorMessage'] || "";
     }
 
     // Returns the fields for the login form
@@ -38,7 +39,6 @@ export class LoginComponent implements CognitoCallback, OnInit {
 
     login() {
         this.errorMessage = "";
-        this.submitted = true;
 
         if (this.loginForm.invalid) return;
 
@@ -49,12 +49,18 @@ export class LoginComponent implements CognitoCallback, OnInit {
 	cognitoCallback(message: string, result: any) {
 		if (message != null) {
 			this.errorMessage = message;
-			this.loading = false;
-			if (this.errorMessage === 'User is not confirmed.') {
-				this.router.navigate(['/confirm', this.fields.email.value]);
-			}
-		} else {
-			this.router.navigate([this.returnUrl]);
+            this.loading = false;
+
+            if (this.errorMessage === CognitoService.NOT_CONFIRMED_ERROR) {
+				this.router.navigate(['/confirm', { email: this.fields.email.value }]);
+            }
+            else if (this.errorMessage === CognitoService.CHANGE_PASSWORD_ERROR) {
+                this.router.navigate(['/newPassword', { email: this.fields.email.value }]);
+            }
+        }
+        else {
+            this.router.navigate([this.returnUrl]);
+            this.loading = false;
 		}
-	}
+    }
 }

@@ -10,6 +10,8 @@ import { ErrorInterceptor } from './_helpers';
 import { LoginComponent } from '@/_pages/login';
 import { RegisterComponent } from '@/_pages/register';
 import { ConfirmRegistrationComponent } from '@/_pages/confirm-registration';
+import { ResendConfirmationComponent } from '@/_pages/resend-confirmation';
+import { NewPasswordComponent } from '@/_pages/new-password';
 import { HomeComponent } from '@/_pages/home';
 
 @NgModule({
@@ -24,6 +26,8 @@ import { HomeComponent } from '@/_pages/home';
         LoginComponent,
         RegisterComponent,
         ConfirmRegistrationComponent,
+        ResendConfirmationComponent,
+        NewPasswordComponent,
         HomeComponent
     ],
     providers: [

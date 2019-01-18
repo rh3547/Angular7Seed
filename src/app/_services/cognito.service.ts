@@ -22,16 +22,13 @@ export interface Callback {
     providedIn: 'root'
 })
 export class CognitoService {
-
-    public static _REGION = Environment.region;
-
-    public static _IDENTITY_POOL_ID = Environment.identityPoolId;
-    public static _USER_POOL_ID = Environment.userPoolId;
-    public static _CLIENT_ID = Environment.clientId;
+    public static NOT_CONFIRMED_ERROR: string = "User is not confirmed.";
+    public static CHANGE_PASSWORD_ERROR: string = "User must change password.";
+    public static CODE_SENT_MESSAGE: string = "Code sent.";
 
     public static _POOL_DATA = {
-        UserPoolId: CognitoService._USER_POOL_ID,
-        ClientId: CognitoService._CLIENT_ID
+        UserPoolId: Environment.userPoolId,
+        ClientId: Environment.clientId
     };
 
     public static getAwsCognito(): any {
@@ -72,13 +69,13 @@ export class CognitoService {
         let cognitoUser = new AWSCognito.CognitoUser(userData);
 
         cognitoUser.authenticateUser(authenticationDetails, {
-            onSuccess: function (result) {
+            onSuccess: (result) => {
                 var logins = {}
-                logins['cognito-idp.' + CognitoService._REGION + '.amazonaws.com/' + CognitoService._USER_POOL_ID] = result.getIdToken().getJwtToken();
+                logins['cognito-idp.' + Environment.region + '.amazonaws.com/' + Environment.userPoolId] = result.getIdToken().getJwtToken();
 
                 // Add the User's Id Token to the Cognito credentials login map.
                 AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-                    IdentityPoolId: CognitoService._IDENTITY_POOL_ID,
+                    IdentityPoolId: Environment.identityPoolId,
                     Logins: logins
                 });
 
@@ -86,9 +83,12 @@ export class CognitoService {
                 console.log("UserLoginService: set the AWSCognito credentials - " + JSON.stringify(AWS.config.credentials));
                 callback.cognitoCallback(null, result);
             },
-            onFailure: function (err) {
+            onFailure: (err) => {
                 callback.cognitoCallback(err.message, null);
             },
+            newPasswordRequired: (userAttributes, requiredAttributes) => {
+                callback.cognitoCallback(CognitoService.CHANGE_PASSWORD_ERROR, userAttributes);
+            }
         });
     }
 
@@ -183,6 +183,45 @@ export class CognitoService {
         });
     }
 
+    forgotPassword(username: string, callback: CognitoCallback) {
+        let userData = {
+            Username: username,
+            Pool: this.getUserPool()
+        };
+
+        let cognitoUser = new AWSCognito.CognitoUser(userData);
+
+        cognitoUser.forgotPassword({
+            onSuccess: function (result) {
+
+            },
+            onFailure: function (err) {
+                callback.cognitoCallback(err.message, null);
+            },
+            inputVerificationCode() {
+                callback.cognitoCallback(null, null);
+            }
+        });
+    }
+
+    confirmNewPassword(email: string, verificationCode: string, password: string, callback: CognitoCallback) {
+        let userData = {
+            Username: email,
+            Pool: this.getUserPool()
+        };
+
+        let cognitoUser = new AWSCognito.CognitoUser(userData);
+
+        cognitoUser.confirmPassword(verificationCode, password, {
+            onSuccess: function () {
+                callback.cognitoCallback(null, null);
+            },
+            onFailure: function (err) {
+                callback.cognitoCallback(err.message, null);
+            }
+        });
+    }
+
     /*
     ========================================================================================
         Cognito Registration Functions
@@ -227,7 +266,7 @@ export class CognitoService {
         });
     }
 
-    resendCode(username: string, callback: CognitoCallback): void {
+    resendCode(username: string, callback: CognitoCallback, background?: boolean): void {
         let userData = {
             Username: username,
             Pool: this.getUserPool()
@@ -240,7 +279,47 @@ export class CognitoService {
                 callback.cognitoCallback(err.message, null);
             }
             else {
+                if (background) {
+                    callback.cognitoCallback(CognitoService.CODE_SENT_MESSAGE, result);
+                }
+                else {
+                    callback.cognitoCallback(null, result);
+                }
+            }
+        });
+    }
+
+    newPassword(username: string, existingPassword: string, newPassword: string, callback: CognitoCallback): void {
+        let authenticationData = {
+            Username: username,
+            Password: existingPassword,
+        };
+        let authenticationDetails = new AWSCognito.AuthenticationDetails(authenticationData);
+
+        let userData = {
+            Username: username,
+            Pool: this.getUserPool()
+        };
+
+        let cognitoUser = new AWSCognito.CognitoUser(userData);
+        cognitoUser.authenticateUser(authenticationDetails, {
+            newPasswordRequired: function (userAttributes, requiredAttributes) {
+                // The api doesn't accept this field back
+                delete userAttributes.email_verified;
+                cognitoUser.completeNewPasswordChallenge(newPassword, requiredAttributes, {
+                    onSuccess: function (result) {
+                        callback.cognitoCallback(null, userAttributes);
+                    },
+                    onFailure: function (err) {
+                        callback.cognitoCallback(err, null);
+                    }
+                });
+            },
+            onSuccess: function (result) {
                 callback.cognitoCallback(null, result);
+            },
+            onFailure: function (err) {
+                callback.cognitoCallback(err, null);
             }
         });
     }

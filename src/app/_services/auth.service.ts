@@ -1,10 +1,6 @@
 ﻿import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CognitoService, CognitoCallback } from './cognito.service';
-import { map } from 'rxjs/operators';
-// import { JwtHelper } from 'angular2-jwt';
-
-import { User } from '@/_models';
 
 @Injectable({
     providedIn: 'root'
@@ -43,6 +39,14 @@ export class AuthService {
         this.cognitoService.confirmRegistration(username, password, callback);
     }
 
+    public resendCode(username: string, callback: CognitoCallback, background?: boolean) {
+        this.cognitoService.resendCode(username, callback, (background) ? background : false);
+    }
+
+    public newPassword(username: string, existingPassword: string, newPassword: string, callback: CognitoCallback) {
+        this.cognitoService.newPassword(username, existingPassword, newPassword, callback);
+    }
+
     /*
     ========================================================================================
         User/Auth Functions
@@ -53,17 +57,28 @@ export class AuthService {
     }
 
     public isAuthenticated(): Promise<boolean> {
-        // Check whether the current time is past the access token's expiry time
-        return this.retrieveIdToken()
-            .then(token => {
-                // const jwtHelper = new JwtHelper();
-                // this.authenticated = token !== null && !jwtHelper.isTokenExpired(token);
-                return this.authenticated;
-            })
-            .catch(() => {
-                this.authenticated = false;
-                return this.authenticated;
+        let _this = this;
+        let cognitoUser = this.cognitoService.getCurrentUser();
+
+        if (cognitoUser != null) {
+            return cognitoUser.getSession(function (err, session) {
+                if (err) {
+                    console.log("UserLoginService: Couldn't get the session: " + err, err.stack);
+                    _this.authenticated = false;
+                }
+                else {
+                    console.log("UserLoginService: Session is " + session.isValid());
+                    _this.authenticated = session.isValid();
+                }
+
+                return new Promise(function (resolve) { resolve(_this.authenticated); });
             });
+        }
+        else {
+            console.log("UserLoginService: can't retrieve the current user");
+            _this.authenticated = false;
+            return new Promise(function (resolve) { resolve(_this.authenticated); });
+        }
     }
 
     public retrieveIdToken() {

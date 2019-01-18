@@ -5,7 +5,8 @@ import { AuthService } from '@/_services';
 
 @Component({
     selector: 'page-home',
-    templateUrl: 'home.html'
+    templateUrl: 'home.html',
+    styleUrls: ['./home.scss']
 })
 export class HomeComponent {
     user: User;

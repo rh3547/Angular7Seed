@@ -2,20 +2,20 @@
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
-import { AuthService, CognitoCallback } from '@/_services';
+import { AuthService, CognitoService, CognitoCallback } from '@/_services';
 
 @Component({
     selector: 'page-confirm-registration',
-    templateUrl: 'confirm-registration.html'
+    templateUrl: 'confirm-registration.html',
+    styleUrls: ['./confirm-registration.scss']
 })
 export class ConfirmRegistrationComponent implements CognitoCallback, OnInit, OnDestroy {
     confirmForm: FormGroup;
     private sub: any;
     email: string = undefined;
     loading = false;
-    submitted = false;
-    returnUrl: string;
     errorMessage: string;
+    message: string;
 
     constructor(
         private formBuilder: FormBuilder,
@@ -35,9 +35,6 @@ export class ConfirmRegistrationComponent implements CognitoCallback, OnInit, On
             this.email = params['email'];
             this.fields.email.setValue(params['email']);
         });
-
-        // Get the return url from route parameters or default to '/'
-        this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     }
 
     ngOnDestroy() {
@@ -49,7 +46,6 @@ export class ConfirmRegistrationComponent implements CognitoCallback, OnInit, On
 
     confirmRegistration() {
         this.errorMessage = "";
-        this.submitted = true;
 
         if (this.confirmForm.invalid) return;
 
@@ -57,13 +53,28 @@ export class ConfirmRegistrationComponent implements CognitoCallback, OnInit, On
         this.authService.confirmRegistration(this.fields.email.value, this.fields.code.value, this);
     }
 
-    cognitoCallback(message: string, result: any) {
-        if (message != null) {
-            this.errorMessage = message;
-            this.loading = false;
+    resendConfirmation() {
+        if (this.email != undefined) {
+            this.authService.resendCode(this.fields.email.value, this, true);
         }
         else {
-            this.router.navigate(['/home']);
+            this.router.navigate(['/resendConfirmation']);
+        }
+    }
+
+    cognitoCallback(message: string, result: any) {
+        if (message != null) {
+            this.loading = false;
+
+            if (message == CognitoService.CODE_SENT_MESSAGE) {
+                this.message = "Your confirmation code has been re-sent. Please check your email.";
+            }
+            else {
+                this.errorMessage = message;
+            }
+        }
+        else {
+            this.router.navigate(['/']);
         }
     }
 }

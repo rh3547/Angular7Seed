@@ -6,13 +6,12 @@ import { AuthService, CognitoCallback } from '@/_services';
 
 @Component({
     selector: 'page-register',
-    templateUrl: 'register.html'
+    templateUrl: 'register.html',
+    styleUrls: ['./register.scss']
 })
 export class RegisterComponent implements CognitoCallback, OnInit {
     registerForm: FormGroup;
     loading = false;
-    submitted = false;
-    returnUrl: string;
     errorMessage: string;
 
     constructor(
@@ -29,9 +28,6 @@ export class RegisterComponent implements CognitoCallback, OnInit {
             email: ['', Validators.required],
             password: ['', Validators.required]
         });
-
-        // Get the return url from route parameters or default to '/'
-        this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     }
 
     // Returns the fields for the login form
@@ -39,7 +35,6 @@ export class RegisterComponent implements CognitoCallback, OnInit {
 
     register() {
         this.errorMessage = "";
-        this.submitted = true;
 
         if (this.registerForm.invalid) return;
 

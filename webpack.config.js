@@ -1,5 +1,6 @@
 ﻿const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const path = require('path');
 
 module.exports = {
@@ -15,10 +16,15 @@ module.exports = {
                 test: /\.(html|css)$/,
                 loader: 'raw-loader'
             },
+            {
+                test: /\.scss$/,
+                exclude: /node_modules/,
+                loaders: ['raw-loader', 'sass-loader'] // sass-loader not scss-loader
+            }
         ]
     },
     resolve: {
-        extensions: ['.ts', '.js'],
+        extensions: ['.ts', '.js', '.scss'],
         alias: {
             '@': path.resolve(__dirname, 'src/app/'),
         }
@@ -30,10 +36,20 @@ module.exports = {
             inject: 'body'
         }),
         new webpack.DefinePlugin({
-            // global app config object
             config: JSON.stringify({
                 apiUrl: 'http://localhost:4000'
             })
+        }),
+        new UglifyJsPlugin({
+            uglifyOptions: {
+                ie8: false,
+                output: {
+                    ascii_only: true,
+                    comments: false,
+                    beautify: false,
+                    webkit: true,
+                },
+            },
         })
     ],
     optimization: {
