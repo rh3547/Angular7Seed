@@ -1,0 +1,37 @@
+﻿<div class="alert alert-error" *ngIf="errorMessage != undefined && errorMessage != ''">
+    {{ errorMessage }}
+</div>
+<h2>Confirm Account</h2>
+<form [formGroup]="confirmForm" (ngSubmit)="confirmRegistration()">
+    <div class="form-group" *ngIf="email == undefined">
+        <label for="email">Email</label>
+        <input type="email" formControlName="email" class="form-control" [ngClass]="{ 'is-invalid': submitted && fields.email.errors }" />
+        <div *ngIf="submitted && fields.email.errors" class="invalid-feedback">
+            <div *ngIf="fields.email.errors.required">Email is required</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="code">Confirmation Code</label>
+        <input type="code" formControlName="code" class="form-control" [ngClass]="{ 'is-invalid': submitted && fields.code.errors }" />
+        <div *ngIf="submitted && fields.code.errors" class="invalid-feedback">
+            <div *ngIf="fields.code.errors.required">Confirmation code is required</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <button [disabled]="loading" class="btn btn-primary">Confirm</button>
+        <img *ngIf="loading" class="pl-2" src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==" />
+    </div>
+</form>
+<hr>
+    <ul>
+        <p>Can't find your code?</p>
+        <!-- <li>
+            <a [routerLink]="['/resendCode']">Resend Code</a>
+        </li> -->
+        <li>
+            <a [routerLink]="['/register']">Register</a>
+        </li>
+        <li>
+            <a [routerLink]="['/login']">Login</a>
+        </li>
+    </ul>

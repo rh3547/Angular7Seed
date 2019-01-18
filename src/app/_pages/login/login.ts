@@ -23,6 +23,7 @@ export class LoginComponent implements CognitoCallback, OnInit {
     ) { }
 
     ngOnInit() {
+        this.errorMessage = "";
         this.loginForm = this.formBuilder.group({
             email: ['', Validators.required],
             password: ['', Validators.required]

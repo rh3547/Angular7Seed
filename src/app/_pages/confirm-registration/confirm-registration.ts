@@ -1,15 +1,17 @@
-﻿import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 import { AuthService, CognitoCallback } from '@/_services';
 
 @Component({
-    selector: 'page-register',
-    templateUrl: 'register.html'
+    selector: 'page-confirm-registration',
+    templateUrl: 'confirm-registration.html'
 })
-export class RegisterComponent implements CognitoCallback, OnInit {
-    registerForm: FormGroup;
+export class ConfirmRegistrationComponent implements CognitoCallback, OnInit, OnDestroy {
+    confirmForm: FormGroup;
+    private sub: any;
+    email: string = undefined;
     loading = false;
     submitted = false;
     returnUrl: string;
@@ -24,27 +26,35 @@ export class RegisterComponent implements CognitoCallback, OnInit {
 
     ngOnInit() {
         this.errorMessage = "";
-        this.registerForm = this.formBuilder.group({
-            name: ['', Validators.required],
+        this.confirmForm = this.formBuilder.group({
             email: ['', Validators.required],
-            password: ['', Validators.required]
+            code: ['', Validators.required]
+        });
+
+        this.sub = this.route.params.subscribe(params => {
+            this.email = params['email'];
+            this.fields.email.setValue(params['email']);
         });
 
         // Get the return url from route parameters or default to '/'
         this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     }
 
-    // Returns the fields for the login form
-    get fields() { return this.registerForm.controls; }
+    ngOnDestroy() {
+        this.sub.unsubscribe();
+    }
 
-    register() {
+    // Returns the fields for the login form
+    get fields() { return this.confirmForm.controls; }
+
+    confirmRegistration() {
         this.errorMessage = "";
         this.submitted = true;
 
-        if (this.registerForm.invalid) return;
+        if (this.confirmForm.invalid) return;
 
         this.loading = true;
-        this.authService.register(this.fields.name.value, this.fields.email.value, this.fields.password.value, this);
+        this.authService.confirmRegistration(this.fields.email.value, this.fields.code.value, this);
     }
 
     cognitoCallback(message: string, result: any) {
@@ -53,7 +63,7 @@ export class RegisterComponent implements CognitoCallback, OnInit {
             this.loading = false;
         }
         else {
-            this.router.navigate(['/confirm', {email: result.user.username}]);
+            this.router.navigate(['/home']);
         }
     }
 }

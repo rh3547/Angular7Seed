@@ -9,6 +9,7 @@ import { AppRouting } from './app.routing';
 import { ErrorInterceptor } from './_helpers';
 import { LoginComponent } from '@/_pages/login';
 import { RegisterComponent } from '@/_pages/register';
+import { ConfirmRegistrationComponent } from '@/_pages/confirm-registration';
 import { HomeComponent } from '@/_pages/home';
 
 @NgModule({
@@ -22,6 +23,7 @@ import { HomeComponent } from '@/_pages/home';
         AppComponent,
         LoginComponent,
         RegisterComponent,
+        ConfirmRegistrationComponent,
         HomeComponent
     ],
     providers: [

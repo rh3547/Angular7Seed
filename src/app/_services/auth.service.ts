@@ -39,6 +39,10 @@ export class AuthService {
         this.cognitoService.register(name, username, password, callback);
     }
 
+    public confirmRegistration(username: string, password: string, callback: CognitoCallback) {
+        this.cognitoService.confirmRegistration(username, password, callback);
+    }
+
     /*
     ========================================================================================
         User/Auth Functions
